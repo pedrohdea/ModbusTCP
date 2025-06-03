@@ -91,14 +91,16 @@ char *lerResposta(void) {
         return NULL;
     }
 
+    //Utilizado nesse trecho para analisar a exceção; correto seria depois da exceção
+    printf("📥 Resposta recebida (%d bytes): ", bytesRecebidos);
+    exibeDados(buffer, bytesRecebidos);
+
     // Verifica se houve exceção Modbus (bit mais significativo de function code está setado)
     if (buffer[7] & 0x80) {
         printf("❗ Exceção Modbus recebida: Código 0x%02X\n", buffer[8]);
         return NULL;
     }
 
-    printf("📥 Resposta recebida (%d bytes): ", bytesRecebidos);
-    exibeDados(buffer, bytesRecebidos);
     return (char *)buffer;
 }
 
@@ -117,7 +119,7 @@ int modbusWrite(const char *sendbuf, int tamReq)
     }
 
     // Aguarda e processa a resposta do servidor
-    char *resposta = lerResposta(); // ← você precisa garantir que essa função seja definida
+    char *resposta = lerResposta();
     if (resposta)
     {
         printf("✅ Resposta válida recebida.\n");

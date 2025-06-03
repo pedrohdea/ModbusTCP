@@ -1,30 +1,29 @@
 /*
- * Servidor TCP com ESP32 - Exemplo com retorno (echo) dos dados recebidos
+ * Servidor TCP com ESP32 - Para receber os múltiplos dados
  * Reage a comandos Modbus TCP recebidos via socket na porta 502
  * Pode ser expandido para interpretar comandos Modbus corretamente
  */
 
 #include <WiFi.h>
 
-// Configurações da rede Wi-Fi
-//const char* ssid = "IFRS-ALUNOS";       // Nome da rede Wi-Fi
-//const char* password = "ifrsfarroupilha"; // Senha da rede Wi-Fi
-const char* ssid = "Assump";       // Nome da rede Wi-Fi
-const char* password = "cocacola"; // Senha da rede Wi-Fi
+// ================== CONFIGURAÇÕES ==================
+const char* ssid = "Assump";          // Nome da rede Wi-Fi
+const char* password = "cocacola";   // Senha da rede Wi-Fi
+const uint8_t endereco_escravo = 1;  // Unit ID do Modbus TCP
+#define NUM_COILS 16                 // Total de coils simulados
+#define LED_STATUS 2                // LED do ESP32 (GPIO2)
 
-
-// Porta padrão para comunicação Modbus TCP
+// ================== VARIÁVEIS GLOBAIS ==================
 WiFiServer server(502);
+WiFiClient client;
+bool coils[NUM_COILS] = {false};     // Simulação de coils
 
-// Pino conectado ao LED do ESP32 (geralmente GPIO 2)
-const int ledPin = 2;
-
+// ================== SETUP ==================
 void setup() {
-  Serial.begin(115200);                // Inicializa a comunicação serial
-  pinMode(ledPin, OUTPUT);             // Configura o pino do LED como saída
-  digitalWrite(ledPin, LOW);           // Garante que o LED comece desligado
+  Serial.begin(115200);
+  pinMode(LED_STATUS, OUTPUT);
+  digitalWrite(LED_STATUS, LOW);
 
-  // Conecta à rede Wi-Fi especificada
   WiFi.begin(ssid, password);
   Serial.print("Conectando à rede Wi-Fi...");
   while (WiFi.status() != WL_CONNECTED) {
@@ -36,45 +35,132 @@ void setup() {
   Serial.print("Endereço IP: ");
   Serial.println(WiFi.localIP());
 
-  // Inicia o servidor na porta 502
   server.begin();
-  Serial.println("Servidor TCP iniciado!");
+  Serial.println("Servidor Modbus TCP iniciado na porta 502");
 }
 
+// ================== LOOP PRINCIPAL ==================
 void loop() {
-  // Verifica se há um cliente conectado
-  WiFiClient client = server.available();
-
+  client = server.available();
   if (client) {
     Serial.println("Cliente conectado.");
 
-    // Enquanto o cliente estiver conectado
     while (client.connected()) {
-      // Verifica se há dados recebidos do cliente
       if (client.available()) {
-        int available = client.available();
-        char receivedChar[20];  // Buffer para armazenar os dados recebidos (limitado a 20 bytes)
+        int dataAvailable = client.available();
+        if (dataAvailable > 260) dataAvailable = 260;
 
-        // Lê os dados recebidos byte a byte
-        for (int i = 0; i < available && i < sizeof(receivedChar); i++) {
-          receivedChar[i] = client.read();
+        byte buffer[260];
+        for (int i = 0; i < dataAvailable; i++) {
+          buffer[i] = client.read();
         }
 
-        // Imprime os dados recebidos no terminal serial em hexadecimal
-        Serial.println("Bytes recebidos:");
-        for (int i = 0; i < available && i < sizeof(receivedChar); i++) {
-          Serial.print(receivedChar[i], HEX);
-          Serial.print(' ');
-        }
-        Serial.println();
+        Serial.println("Dados recebidos:");
+        exibirHex(buffer, dataAvailable);
 
-        // Envia os mesmos dados de volta para o cliente (echo)
-        client.write(receivedChar, available);
+        if (dataAvailable >= 8) {
+          byte unitId = buffer[6];
+          byte funcCode = buffer[7];
+
+          if (unitId == endereco_escravo || unitId == 0) {
+            switch (funcCode) {
+              case 0x0F:
+                funcaoWriteMultipleCoils(buffer, dataAvailable);
+                break;
+              case 0x0E:
+                funcaoEco(buffer, dataAvailable);
+                break;
+              default:
+                enviaExcecao(buffer, 0x01);  // Função inválida
+                break;
+            }
+          }
+        }
       }
     }
 
-    // Cliente desconectado
     client.stop();
     Serial.println("Cliente desconectado.");
   }
 }
+
+// ================== FUNÇÕES AUXILIARES ==================
+void exibirHex(const byte* data, int len) {
+  for (int i = 0; i < len; i++) {
+    Serial.printf("%02X ", data[i]);
+  }
+  Serial.println();
+}
+
+void blink(int ms) {
+  digitalWrite(LED_STATUS, HIGH);
+  delay(ms);
+  digitalWrite(LED_STATUS, LOW);
+}
+
+// ================== MODBUS TCP ==================
+void enviaExcecao(byte* req, byte codigo) {
+  byte resp[9];
+  memcpy(resp, req, 4);            // Transaction ID + Protocol ID
+  resp[4] = 0x00;
+  resp[5] = 0x03;                  // Comprimento = 3 bytes
+  resp[6] = req[6];                // Unit ID
+  resp[7] = req[7] | 0x80;         // Função com MSB ativado
+  resp[8] = codigo;                // Código de exceção
+
+  client.write(resp, 9);
+}
+
+void funcaoWriteMultipleCoils(byte* req, int length) {
+  if (length < 13) {
+    enviaExcecao(req, 0x03); // Erro de tamanho
+    return;
+  }
+
+  uint16_t startAddr = (req[8] << 8) | req[9];
+  uint16_t quantity = (req[10] << 8) | req[11];
+  byte byteCount = req[12];
+
+  if (startAddr + quantity > NUM_COILS || byteCount != (quantity + 7) / 8) {
+    enviaExcecao(req, 0x03); // Dado inválido
+    return;
+  }
+
+  // Escreve nos coils simulados
+  for (int i = 0; i < quantity; i++) {
+    int byteIndex = 13 + (i / 8);
+    int bitIndex = i % 8;
+    bool bit = (req[byteIndex] >> bitIndex) & 0x01;
+    coils[startAddr + i] = bit;
+  }
+
+  blink(50);
+
+  // Resposta Modbus TCP
+  byte resp[12];
+  memcpy(resp, req, 4);           // Transaction ID + Protocol ID
+  resp[4] = 0x00;
+  resp[5] = 0x06;                 // Comprimento = 6 bytes
+  resp[6] = req[6];               // Unit ID
+  resp[7] = 0x0F;                 // Código da função
+  resp[8] = req[8];               // Addr High
+  resp[9] = req[9];               // Addr Low
+  resp[10] = req[10];             // Qtd High
+  resp[11] = req[11];             // Qtd Low
+
+  client.write(resp, 12);
+}
+
+void funcaoEco(byte* req, int length) {
+  // Copia a requisição completa como resposta
+  byte resp[260];
+  if (length > sizeof(resp)) length = sizeof(resp);
+
+  memcpy(resp, req, length);
+  client.write(resp, length);
+
+  Serial.println("Função Eco executada:");
+  exibirHex(resp, length);
+  blink(25);
+}
+

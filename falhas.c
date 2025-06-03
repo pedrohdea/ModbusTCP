@@ -20,14 +20,13 @@ void enviarPacoteInvalido(const uint8_t *pdu, uint8_t pdu_len, const char *descr
 
     printf("🚫 %s\n", descricao);
     modbusWrite((const char *)req, 7 + pdu_len);
-    lerResposta();
 
     transaction_id = (transaction_id + 1) % 0x10000;
 }
 
 void enviarFuncaoInvalida(void) {
-    uint8_t pdu[] = {0x99, 0x00, 0x00, 0x00, 0x01};  // função 0x99 inexistente
-    enviarPacoteInvalido(pdu, sizeof(pdu), "Funcao inexistente (0x99)");
+    uint8_t pdu[] = {0x09, 0x00, 0x00, 0x00, 0x01};  // função 0x09 inexistente
+    enviarPacoteInvalido(pdu, sizeof(pdu), "Funcao inexistente (0x09)");
 }
 
 void enviarRegistradorInvalido(void) {
@@ -56,7 +55,6 @@ void enviarEnderecoInvalido(void) {
 
     printf("🚫 Endereco de escravo inexistente (ID 0x09)\n");
     modbusWrite((const char *)req, 7 + sizeof(pdu));
-    lerResposta();
 
     transaction_id = (transaction_id + 1) % 0x10000;
 }
