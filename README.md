@@ -96,3 +96,10 @@ Este projeto é uma continuação do Projeto 01. Utilizar conceitos de Modbus e 
 | **Total**               | **5,0**|
 
 ---
+
+# Desenvolvimento
+
+Para criar executavel..
+´´´
+gcc -o run main.c
+´´´
