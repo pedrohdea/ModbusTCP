@@ -3,10 +3,11 @@
 #include "writecoils.h"
 #include "mapa.h"
 #include "falhas.h"
+#include "serial.h"
 
 #define TAMANHO_BUFFER 512
 #define DEFAULT_PORT 502
-#define IP_SERVIDOR "10.202.1.124"
+#define IP_SERVIDOR "10.202.1.1"
 
 void mostrarHeader() {
     printf("=========================================\n");
@@ -15,27 +16,28 @@ void mostrarHeader() {
 }
 
 void mostrarMenu() {
+    printf("\n");
     printf("1. Escrever múltiplos coils (0x0F)\n");
     printf("2. Enviar comando com endereço inválido (teste de timeout)\n");
     printf("3. Enviar função inválida (teste de exceção 01)\n");
     printf("4. Enviar registrador inválido (teste de exceção 02)\n");
     printf("5. Enviar valor inválido (teste de exceção 03)\n");
-    printf("x. Sair\n\n");
+    printf("x. Sair\n");
 }
 
 int main() {
+    mostrarHeader();
+
     if (startSocket(IP_SERVIDOR, DEFAULT_PORT) != 0) {
         return 1;
     }
     
-    mostrarHeader();
     char opcao;
 
     do {
         mostrarMenu();
         printf("Digite a opção desejada: ");
         scanf(" %c", &opcao);  // espaço ignora ENTER anterior
-
         switch (opcao) {
             case '1':
                 printf("\n1. Escrever múltiplos coils (0x0F)\n");
@@ -59,8 +61,8 @@ int main() {
                 break;
             case 't':
             case 'T':
-                printf("\nTeste Write Coils\n");
-                testeMultiplosCoils();
+                printf("\nT. Teste ECO\n");
+                testEco();
                 break;
             case 'x':
             case 'X':

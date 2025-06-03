@@ -9,10 +9,6 @@
 #include "writecoils.h"
 #include "falhas.h"
 
-#define TAMANHO_BUFFER 512
-#define DEFAULT_PORT 502
-#define IP_SERVIDOR "192.168.0.27"
-
 unsigned char sendbuf[TAMANHO_BUFFER];
 int id = 0;
 
@@ -35,33 +31,4 @@ void testEco(void)
 
     id++;
     sleep(1);
-}
-
-void testChess(void)
-{
-    sendPosicao();
-    sendPosicao();
-}
-
-int main()
-{
-    if (startSocket(IP_SERVIDOR, DEFAULT_PORT) != 0)
-    {
-        return 1;
-    }
-    testEco();
-
-    // testChess();
-
-    // enviarEnderecoInvalido();
-
-    // enviarFuncaoInvalida();
-
-    // enviarRegistradorInvalido();
-
-    // enviarValorInvalido();
-
-    closeSocket();
-    printf("🔌 Conexão encerrada.\n");
-    return 0;
 }

@@ -7,9 +7,12 @@
 #include <WiFi.h>
 
 // ================== CONFIGURAÇÕES ==================
-const char* ssid = "Assump";          // Nome da rede Wi-Fi
-const char* password = "cocacola";   // Senha da rede Wi-Fi
+// const char* ssid = "Assump";          // Nome da rede Wi-Fi
+// const char* password = "cocacola";   // Senha da rede Wi-Fi
 const uint8_t endereco_escravo = 1;  // Unit ID do Modbus TCP
+const char* ssid = "IFRS-ALUNOS";       // Nome da rede Wi-Fi
+const char* password = "ifrsfarroupilha"; // Senha da rede Wi-Fi
+
 #define NUM_COILS 16                 // Total de coils simulados
 #define LED_STATUS 2                // LED do ESP32 (GPIO2)
 
@@ -35,6 +38,9 @@ void setup() {
   Serial.print("Endereço IP: ");
   Serial.println(WiFi.localIP());
 
+  blink(500);
+  digitalWrite(LED_STATUS, HIGH);
+
   server.begin();
   Serial.println("Servidor Modbus TCP iniciado na porta 502");
 }
@@ -44,8 +50,10 @@ void loop() {
   client = server.available();
   if (client) {
     Serial.println("Cliente conectado.");
+    digitalWrite(LED_STATUS, HIGH);
 
     while (client.connected()) {
+      digitalWrite(LED_STATUS, HIGH);
       if (client.available()) {
         int dataAvailable = client.available();
         if (dataAvailable > 260) dataAvailable = 260;
@@ -55,6 +63,8 @@ void loop() {
           buffer[i] = client.read();
         }
 
+        digitalWrite(LED_STATUS, LOW);
+        delay(500);
         Serial.println("Dados recebidos:");
         exibirHex(buffer, dataAvailable);
 
@@ -96,6 +106,7 @@ void blink(int ms) {
   digitalWrite(LED_STATUS, HIGH);
   delay(ms);
   digitalWrite(LED_STATUS, LOW);
+  delay(ms);
 }
 
 // ================== MODBUS TCP ==================
@@ -109,6 +120,18 @@ void enviaExcecao(byte* req, byte codigo) {
   resp[8] = codigo;                // Código de exceção
 
   client.write(resp, 9);
+}
+
+void imprimirCoils() {
+  Serial.print("Estado atual dos coils: ");
+  for (int i = 0; i < NUM_COILS; i++) {
+    Serial.print(coils[i] ? "1" : "0");
+    Serial.print(' ');
+
+    // Quebra de linha a cada 8 coils, se desejar
+    if ((i + 1) % 8 == 0) Serial.print("| ");
+  }
+  Serial.println();
 }
 
 void funcaoWriteMultipleCoils(byte* req, int length) {
@@ -133,20 +156,20 @@ void funcaoWriteMultipleCoils(byte* req, int length) {
     bool bit = (req[byteIndex] >> bitIndex) & 0x01;
     coils[startAddr + i] = bit;
   }
-
-  blink(50);
+  //print coils
+  imprimirCoils();
 
   // Resposta Modbus TCP
   byte resp[12];
-  memcpy(resp, req, 4);           // Transaction ID + Protocol ID
+  memcpy(resp, req, 4); // Transaction ID + Protocol ID
   resp[4] = 0x00;
-  resp[5] = 0x06;                 // Comprimento = 6 bytes
-  resp[6] = req[6];               // Unit ID
-  resp[7] = 0x0F;                 // Código da função
-  resp[8] = req[8];               // Addr High
-  resp[9] = req[9];               // Addr Low
-  resp[10] = req[10];             // Qtd High
-  resp[11] = req[11];             // Qtd Low
+  resp[5] = 0x06;       // Comprimento = 6 bytes
+  resp[6] = req[6];     // Unit ID
+  resp[7] = 0x0F;       // Código da função
+  resp[8] = req[8];     // Addr High
+  resp[9] = req[9];     // Addr Low
+  resp[10] = req[10];   // Qtd High
+  resp[11] = req[11];   // Qtd Low
 
   client.write(resp, 12);
 }

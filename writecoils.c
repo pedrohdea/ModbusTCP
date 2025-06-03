@@ -15,19 +15,19 @@ int escreverMultiplosCoils(int inicio, int quantidade, int byteCount, const unsi
     // MBAP Header
     req[0] = (transaction_id >> 8) & 0xFF;  // Transaction ID high
     req[1] = transaction_id & 0xFF;         // Transaction ID low
-    req[2] = 0x00;                          // Protocol ID high
-    req[3] = 0x00;                          // Protocol ID low
-    req[4] = 0x00;                          // Length high (to be set below)
-    req[5] = 7 + byteCount;                 // Length low: Unit ID + Function + 5 bytes + data
-    req[6] = 0x01;                          // Unit ID
+    req[2] = 0x00;                          // protocol identifier MSB (0x0000 = MODBUS)
+    req[3] = 0x00;                          // protocol identifier LSB
+    req[4] = 0x00;                          // comprimento do resto da mensagem MSB
+    req[5] = 7 + byteCount;                 // comprimento do resto da mensagem LSB
+    req[6] = 0x01;                          // ID do escravo (Unit ID)
 
     // PDU
-    req[7] = 0x0F;                          // Function code
-    req[8] = (inicio >> 8) & 0xFF;        // Coil start address high
-    req[9] = inicio & 0xFF;               // Coil start address low
-    req[10] = (quantidade >> 8) & 0xFF;     // Quantity high
-    req[11] = quantidade & 0xFF;            // Quantity low
-    req[12] = byteCount;                   // Byte count
+    req[7] = 0x0F;                          // funcao 0x0F (write multiple coil)
+    req[8] = (inicio >> 8) & 0xFF;          // Coil start address high
+    req[9] = inicio & 0xFF;                 // Coil start address low
+    req[10] = (quantidade >> 8) & 0xFF;     // Quantidade high
+    req[11] = quantidade & 0xFF;            // Quantidade low
+    req[12] = byteCount;                    // Byte count
 
     memcpy(&req[13], dados, byteCount);
 

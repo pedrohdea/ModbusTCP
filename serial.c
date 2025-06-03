@@ -120,13 +120,13 @@ int modbusWrite(const char *sendbuf, int tamReq)
 
     // Aguarda e processa a resposta do servidor
     char *resposta = lerResposta();
-    if (resposta)
-    {
-        printf("✅ Resposta válida recebida.\n");
-    }
-    else
-    {
+    // Verifica se houve resposta
+    if (resposta == NULL) {
         printf("❌ Nenhuma resposta válida.\n");
+    } else if (!(resposta[0] == sendbuf[0] && resposta[1] == sendbuf[1])) {
+        printf("❌ Resposta inválida (transaction ID diferente).\n");
+    } else {
+        printf("✅ Resposta válida recebida.\n");
         return 0;
     }
 
