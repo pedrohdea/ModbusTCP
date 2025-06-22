@@ -99,7 +99,57 @@ Este projeto é uma continuação do Projeto 01. Utilizar conceitos de Modbus e 
 
 # Desenvolvimento
 
-Para criar executavel..
+## Para criar executavel e executar main.c
 ´´´
-gcc -o run main.c
+gcc -o run main.c teste.c writecoils.c mapa.c falhas.c serial.c 
 ´´´
+Executar:
+´´´
+./run
+´´´
+## Para compilar e fazer upload no ESP32
+
+Baixar arduino IDE
+https://www.arduino.cc/en/software/
+
+### Passos para instalar o Arduino IDE 2.3.6 (Linux)
+Extraia o arquivo .zip:
+´´´
+unzip arduino-ide_2.3.6_Linux_64bit.zip -d arduino
+cd arduino
+´´´
+
+Corrija a permissão, torne o arquivo executável:
+´´´
+chmod +x arduino-ide
+´´´
+
+### (Opcional) Criar um atalho no menu do sistema:
+Se quiser criar um atalho de menu para a IDE:
+
+Crie um arquivo chamado arduino-ide.desktop em ~/.local/share/applications/:
+
+´´´
+nano ~/.local/share/applications/arduino-ide.desktop
+´´´
+
+´´´
+[Desktop Entry]
+Name=Arduino IDE
+Comment=Arduino IDE 2.x
+Exec=/caminho/para/arduino/arduino-ide
+Icon=/caminho/para/arduino/resources/app/static/arduino-logo.ico
+Terminal=false
+Type=Application
+Categories=Development;IDE;
+´´´
+
+### Baixar extensão do ESP32 expressif
+Tools > Preferences > Baixar
+
+Selecionar ESP32 DEV MODULE
+
+Upload do código com USB conectado
+
+
+# Apresentação
