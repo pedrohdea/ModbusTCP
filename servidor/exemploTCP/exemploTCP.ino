@@ -7,10 +7,8 @@
 #include <WiFi.h>
 
 // Configurações da rede Wi-Fi
-//const char* ssid = "IFRS-ALUNOS";       // Nome da rede Wi-Fi
-//const char* password = "ifrsfarroupilha"; // Senha da rede Wi-Fi
-const char* ssid = "Assump";       // Nome da rede Wi-Fi
-const char* password = "cocacola"; // Senha da rede Wi-Fi
+const char* ssid = "IFRS-ALUNOS";       // Nome da rede Wi-Fi
+const char* password = "ifrsfarroupilha"; // Senha da rede Wi-Fi
 
 
 // Porta padrão para comunicação Modbus TCP

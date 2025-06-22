@@ -5,17 +5,7 @@
  */
 
 #include <WiFi.h>
-
-// ================== CONFIGURAÇÕES ==================
-const uint8_t endereco_escravo = 1;  // Unit ID do Modbus TCP
-
-const char* ssid = "Assump";            // Nome da rede Wi-Fi
-const char* password = "cocacola";      // Senha da rede Wi-Fi
-//const char* ssid = "IFRS-ALUNOS";     // Nome da rede Wi-Fi
-//const char* password = "ifrsfarroupilha"; // Senha da rede Wi-Fi
-
-#define NUM_COILS 16                 // Total de coils simulados
-#define LED_STATUS 2                // LED do ESP32 (GPIO2)
+#include "config.h"
 
 // ================== VARIÁVEIS GLOBAIS ==================
 WiFiServer server(502);

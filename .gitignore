@@ -30,3 +30,26 @@
 *.exe
 *.out
 *.app
+
+# Arquivos temporários ou de backup
+*.bak
+*.tmp
+*.swp
+*.swo
+*.orig
+
+# Arquivos do Arduino IDE
+*.elf
+*.hex
+
+# Pastas geradas por builds (em IDEs ou PlatformIO)
+.build/
+.pio/
+.vscode/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de configuração específicos
+config.h

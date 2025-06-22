@@ -151,5 +151,190 @@ Selecionar ESP32 DEV MODULE
 
 Upload do código com USB conectado
 
+# Fluxo de Comunicação: PC (Cliente) ↔ ESP32 (Servidor)
 
-# Apresentação
+## Etapas do Processo
+
+1. **Início do Programa no Cliente**  
+   O usuário executa o software em C pelo terminal Linux.
+
+2. **Navegação no Menu**  
+   O usuário escolhe a **opção 1 – Write Multiple Coils**.
+
+3. **Entrada da Jogada de Xadrez**  
+   O usuário informa a jogada no formato padrão (ex: `D2D4`).
+
+4. **Conversão da Jogada para Padrão Binário**  
+   A jogada é convertida em um mapa de bits que define os LEDs a serem acesos.
+
+5. **Geração dos Dados dos Coils**  
+   O padrão de 16 bits é dividido em dois bytes: `resultadoA` e `resultadoB`.
+
+6. **Montagem do Quadro MODBUS TCP**  
+   O quadro inclui:
+   - Cabeçalho MBAP  
+   - Função 0x0F (Write Multiple Coils)  
+   - Dados dos coils (`resultadoA`, `resultadoB`)
+
+7. **Envio do Quadro via Wi-Fi**  
+   O cliente envia o quadro para o ESP32 pela porta **502**.
+
+8. **Início da Contagem de Timeout**
+
+9. **Recebimento e Validação no Servidor (ESP32)**  
+   O ESP32 valida o cabeçalho e os dados recebidos.
+
+10. **Interpretação e Log do Comando**  
+    O ESP32 interpreta os dados e imprime o comando recebido no Serial Monitor.
+
+11. **Resposta do Servidor**  
+    O ESP32 envia um quadro de confirmação com os dados esperados.
+
+12. **Validação da Resposta no Cliente**  
+    O cliente verifica a integridade da resposta.
+
+13. **Exibição de Resultado**
+    - Se válida, exibe **“OK”**;
+    - Caso contrário, executa **tratamento de falha**.
+
+
+
+# Apresentação: Projeto 02 – Dispositivo Modbus TCP
+
+**Curso**: Engenharia de Controle e Automação  
+**Instituição**: IFRS – Campus Farroupilha  
+**Disciplina**: Barramentos Industriais  
+**Professor**: Gustavo Künzel  
+**Aluno**: Pedro Henrique de Assumpção  
+**Data**: 24/06/2025
+
+---
+
+## Índice
+
+- Introdução  
+- Objetivos  
+- Justificativa  
+- Fundamentação Teórica  
+- Proposta  
+- Testes  
+- Desafios  
+- Referências
+
+---
+
+## Introdução
+
+Utilizar conceitos de Modbus TCP e comunicação pela rede Ethernet para desenvolver uma aplicação compatível com o protocolo. O objetivo é compreender como deve ser feita a programação do protocolo nos dispositivos.
+
+---
+
+## Objetivos
+
+- Módulo de saídas digitais (8 a 16 saídas);
+- Representadas por mensagens no ESP32 (servidor);
+- O programa do PC (cliente) deve enviar comandos ao ESP32;
+- Utilizar a função Modbus 0x0F (Write Multiple Coils).
+
+---
+
+## Justificativa
+
+Desenvolver um sistema que permita o envio de comandos ao servidor a partir de uma conexão cliente, utilizando o ESP32 com rede integrada. Também busca-se compreender a implementação prática do protocolo e sua aplicabilidade em sistemas embarcados.
+
+---
+
+## Fundamentação Teórica
+
+### Protocolo Modbus TCP
+
+- Baseado em Ethernet, permite troca de dados via TCP/IP.
+- Modelo cliente-servidor.
+- Encapsula os dados do Modbus RTU em pacotes TCP/IP, preservando a estrutura lógica.
+
+### Quadro da Mensagem
+
+| Campo             | Seção        | Descrição                                  | Tamanho (bytes) | Exemplo (Hex) |
+|------------------|--------------|--------------------------------------------|------------------|----------------|
+| Transaction ID    | MBAP Header  | ID da transação definido pelo cliente      | 2                | 00 01          |
+| Protocol ID       | MBAP Header  | Sempre 0x0000 para Modbus                  | 2                | 00 00          |
+| Length            | MBAP Header  | Nº de bytes restantes (Unit ID + PDU)      | 2                | 00 08          |
+| Unit ID           | MBAP Header  | Identificação do dispositivo               | 1                | 01             |
+| Function Code     | PDU          | 0x0F (Write Multiple Coils)                | 1                | 0F             |
+| Starting Address  | PDU          | Endereço inicial dos coils                 | 2                | 00 13          |
+| Quantity of Coils | PDU          | Quantidade de coils (10)                   | 2                | 00 0A          |
+| Byte Count        | PDU          | Nº de bytes nos valores dos coils          | 1                | 02             |
+| Output Values     | PDU          | Bits para os coils                         | 2 ou +           | 55 01          |
+
+---
+
+## Proposta
+
+### Componentes do Sistema
+
+- ESP32-WROOM-32 configurado como servidor Modbus TCP;
+- Comunicação via Wi-Fi, porta 502;
+- IP dinâmico atribuído pela rede;
+- Estrutura das mensagens segue o padrão Modbus TCP.
+
+### Matriz de LEDs
+
+- Matriz 8x8 com 64 LEDs;
+- Controlada por registros que determinam quais LEDs acender;
+- Permite criar padrões visuais.
+
+---
+
+## Fluxograma Explicado
+
+1. Usuário executa o programa em C no terminal Linux.  
+2. Usuário seleciona a opção 1 no menu (Write Multiple Coils).  
+3. Usuário informa a jogada de xadrez (ex: D2D4).  
+4. Programa converte a jogada em padrão binário.  
+5. Divide os 16 bits em `resultadoA` e `resultadoB`.  
+6. Monta quadro Modbus TCP (função 0x0F).  
+7. Envia o quadro via Wi-Fi (porta 502).  
+8. Inicia contagem de timeout.  
+9. ESP32 recebe e valida o quadro.  
+10. Interpreta os dados e imprime no Serial Monitor.  
+11. Envia quadro de resposta ao cliente.  
+12. Cliente valida a resposta.  
+13. Se válida, exibe "OK".  
+14. Se inválida ou sem resposta, trata o erro.
+
+---
+
+## Testes
+
+### Procedimentos
+
+- Testes confirmaram a comunicação entre cliente e servidor;
+- A saída em ambos os lados exibe o mesmo padrão binário.
+
+### Rotinas de Falhas
+
+- O menu do cliente trata erros como endereço inválido e ausência de resposta;
+- Exibe mensagens de erro e permite nova tentativa sem travar o sistema.
+
+---
+
+## Desafios
+
+- Melhorar a configuração com parametrização de:
+  - Endereço de rede;
+  - Senha;
+  - Porta serial.
+- Tornar o sistema mais flexível e reutilizável com diferentes dispositivos.
+
+---
+
+## Referências
+
+- MODBUS ORGANIZATION. *MODBUS Messaging on TCP/IP Implementation Guide V1.0b*. [S.l.], 2006. Disponível em: https://modbus.org/docs/Modbus_Messaging_Implementation_Guide_V1_0b.pdf. Acesso em: 22 jun. 2025.
+
+- SCHNEIDER ELECTRIC. *Modbus Protocol Reference Guide*. [S.l.], [s.d.]. Disponível em: https://www.se.com/ww/en/download/document/Modbus_Protocol_Reference/. Acesso em: 22 jun. 2025.
+
+- PEDRO HENRIQUE DE ASSUMPÇÃO. *ModbusTCP*. GitHub, 2025. Disponível em: https://github.com/pedrohdea/ModbusTCP. Acesso em: 22 jun. 2025.
+
+- ESPRESSIF SYSTEMS. *ESP32 – TCP/IP Server Example*. Documentation. [S.l.], [s.d.]. Disponível em: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/lwip.html#tcp-server. Acesso em: 22 jun. 2025.
+
