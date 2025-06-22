@@ -332,7 +332,7 @@ Desenvolver um sistema que permita o envio de comandos ao servidor a partir de u
 
 - MODBUS ORGANIZATION. *MODBUS Messaging on TCP/IP Implementation Guide V1.0b*. [S.l.], 2006. Disponível em: https://modbus.org/docs/Modbus_Messaging_Implementation_Guide_V1_0b.pdf. Acesso em: 22 jun. 2025.
 
-- SCHNEIDER ELECTRIC. *Modbus Protocol Reference Guide*. [S.l.], [s.d.]. Disponível em: https://www.se.com/ww/en/download/document/Modbus_Protocol_Reference/. Acesso em: 22 jun. 2025.
+- EMODBUS. *ModbusServer TCP – eModbus documentation*. Disponível em: <https://emodbus.github.io/modbusserver-tcp>. Acesso em: 22 jun. 2025.
 
 - PEDRO HENRIQUE DE ASSUMPÇÃO. *ModbusTCP*. GitHub, 2025. Disponível em: https://github.com/pedrohdea/ModbusTCP. Acesso em: 22 jun. 2025.
 
