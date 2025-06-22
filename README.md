@@ -197,7 +197,7 @@ Upload do código com USB conectado
     - Se válida, exibe **“OK”**;
     - Caso contrário, executa **tratamento de falha**.
 
-
+![Fluxograma](contrib/fluxograma.png)
 
 # Apresentação: Projeto 02 – Dispositivo Modbus TCP
 
