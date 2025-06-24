@@ -7,7 +7,7 @@
 
 #define TAMANHO_BUFFER 512
 #define DEFAULT_PORT 502
-#define IP_SERVIDOR "192.168.0.21"
+#define IP_SERVIDOR "10.202.2.152"
 
 void mostrarHeader() {
     printf("=========================================\n");
