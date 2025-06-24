@@ -58,8 +58,15 @@ void loop() {
         delay(500);
         Serial.println("Dados recebidos:");
         exibirHex(buffer, dataAvailable);
-
+        
         if (dataAvailable >= 8) {
+
+          // Valida o lenght do protocolo e descarta a mensagem
+          uint16_t length = (buffer[4] << 8) | buffer[5];
+          if (dataAvailable != length + 6) {
+            break;
+          }
+          
           byte unitId = buffer[6];
           byte funcCode = buffer[7];
 
@@ -126,8 +133,8 @@ void imprimirCoils() {
 }
 
 void funcaoWriteMultipleCoils(byte* req, int length) {
-  if (length < 13) {
-    enviaExcecao(req, 0x03); // Erro de tamanho
+  if (length < 13 || length > 16) {
+    enviaExcecao(req, 0x02); // Exceção especifica do protocolo, comando não suportado permitido apenas 16 bits de dados
     return;
   }
 
@@ -136,7 +143,7 @@ void funcaoWriteMultipleCoils(byte* req, int length) {
   byte byteCount = req[12];
 
   if (startAddr + quantity > NUM_COILS || byteCount != (quantity + 7) / 8) {
-    enviaExcecao(req, 0x03); // Dado inválido
+    enviaExcecao(req, 0x03); // Exceção especifica do protocolo, teria que criar uma resposta de "Comando não suportado, envie no formato 1 0 0 0 0 0 0 0 | 0 0 0 1 0 0 0 0"
     return;
   }
 
